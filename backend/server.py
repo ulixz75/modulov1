@@ -211,6 +211,430 @@ async def get_user(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     return User(**str_object_id(user))
 
+# Add complete content for 7th grade
+@api_router.post("/initialize-7th-grade-content")
+async def initialize_7th_grade_content():
+    """Add complete content structure for 7th grade"""
+    try:
+        # Get 7th grade ID
+        grade_7 = await db.grades.find_one({"grade_number": 7})
+        if not grade_7:
+            raise HTTPException(status_code=404, detail="7th grade not found")
+        
+        grade_7_id = str(grade_7["_id"])
+
+        # Clear existing topics, modules, and content for 7th grade
+        await db.topics.delete_many({"grade_id": grade_7_id})
+        await db.modules.delete_many({})
+        await db.content.delete_many({})
+
+        # Create topics for 7th grade
+        topics_7_data = [
+            {
+                "grade_id": grade_7_id,
+                "name": "Números Enteros",
+                "description": "Operaciones con números enteros, propiedades y aplicaciones",
+                "icon": "calculator",
+                "order": 1,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "grade_id": grade_7_id,
+                "name": "Fracciones y Decimales",
+                "description": "Operaciones con fracciones y números decimales",
+                "icon": "pie-chart",
+                "order": 2,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "grade_id": grade_7_id,
+                "name": "Introducción al Álgebra",
+                "description": "Variables, expresiones algebraicas y ecuaciones simples",
+                "icon": "function",
+                "order": 3,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "grade_id": grade_7_id,
+                "name": "Geometría Básica",
+                "description": "Figuras geométricas, área y perímetro",
+                "icon": "triangle",
+                "order": 4,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "grade_id": grade_7_id,
+                "name": "Proporciones y Porcentajes",
+                "description": "Razones, proporciones y cálculo de porcentajes",
+                "icon": "percent",
+                "order": 5,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+        ]
+
+        # Create placeholder topics for grades 8-12
+        other_grades = await db.grades.find({"grade_number": {"$gt": 7}}).to_list(10)
+        for grade in other_grades:
+            grade_id = str(grade["_id"])
+            grade_num = grade["grade_number"]
+            grade_topics = [
+                {
+                    "grade_id": grade_id,
+                    "name": f"Tema 1 - Grado {grade_num}",
+                    "description": f"Primer tema del grado {grade_num} - Por completar",
+                    "icon": "book",
+                    "order": 1,
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                },
+                {
+                    "grade_id": grade_id,
+                    "name": f"Tema 2 - Grado {grade_num}",
+                    "description": f"Segundo tema del grado {grade_num} - Por completar",
+                    "icon": "book",
+                    "order": 2,
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                },
+                {
+                    "grade_id": grade_id,
+                    "name": f"Tema 3 - Grado {grade_num}",
+                    "description": f"Tercer tema del grado {grade_num} - Por completar",
+                    "icon": "book",
+                    "order": 3,
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                }
+            ]
+            topics_7_data.extend(grade_topics)
+
+        # Insert all topics
+        topics_result = await db.topics.insert_many(topics_7_data)
+        
+        # Get 7th grade topic IDs
+        grade_7_topic_ids = [str(topic_id) for topic_id in topics_result.inserted_ids[:5]]
+
+        # Create modules for 7th grade first topic (Números Enteros) - Complete
+        integers_modules = [
+            {
+                "topic_id": grade_7_topic_ids[0],
+                "name": "Definición y Clasificación",
+                "description": "Qué son los números enteros y cómo se clasifican",
+                "order": 1,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "topic_id": grade_7_topic_ids[0],
+                "name": "Suma y Resta",
+                "description": "Operaciones de suma y resta con números enteros",
+                "order": 2,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "topic_id": grade_7_topic_ids[0],
+                "name": "Multiplicación y División",
+                "description": "Operaciones de multiplicación y división con números enteros",
+                "order": 3,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "topic_id": grade_7_topic_ids[0],
+                "name": "Orden y Comparación",
+                "description": "Cómo ordenar y comparar números enteros",
+                "order": 4,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+        ]
+
+        # Create placeholder modules for other 7th grade topics
+        placeholder_modules = []
+        for i, topic_id in enumerate(grade_7_topic_ids[1:], 1):
+            topic_modules = [
+                {
+                    "topic_id": topic_id,
+                    "name": f"Módulo 1",
+                    "description": f"Primer módulo del tema {i+1} - Por completar",
+                    "order": 1,
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                },
+                {
+                    "topic_id": topic_id,
+                    "name": f"Módulo 2",
+                    "description": f"Segundo módulo del tema {i+1} - Por completar",
+                    "order": 2,
+                    "is_active": True,
+                    "created_at": datetime.utcnow()
+                }
+            ]
+            placeholder_modules.extend(topic_modules)
+
+        # Insert modules
+        all_modules = integers_modules + placeholder_modules
+        modules_result = await db.modules.insert_many(all_modules)
+        
+        # Get first module ID (Definición y Clasificación)
+        first_module_id = str(modules_result.inserted_ids[0])
+
+        # Create complete content for first module
+        content_data = [
+            # Glossary
+            {
+                "module_id": first_module_id,
+                "content_type": "glossary",
+                "title": "Glosario - Números Enteros",
+                "glossary_terms": [
+                    {
+                        "term": "Número Entero",
+                        "definition": "Conjunto de números que incluye los naturales, sus opuestos negativos y el cero",
+                        "example": "..., -3, -2, -1, 0, 1, 2, 3, ..."
+                    },
+                    {
+                        "term": "Números Naturales",
+                        "definition": "Números positivos que se usan para contar",
+                        "example": "1, 2, 3, 4, 5, ..."
+                    },
+                    {
+                        "term": "Números Negativos",
+                        "definition": "Números menores que cero, representados con el signo menos",
+                        "example": "-1, -2, -3, -4, ..."
+                    },
+                    {
+                        "term": "Valor Absoluto",
+                        "definition": "Distancia de un número entero al cero, siempre positiva",
+                        "example": "|−3| = 3, |5| = 5"
+                    },
+                    {
+                        "term": "Opuesto",
+                        "definition": "Número que tiene el mismo valor absoluto pero signo contrario",
+                        "example": "El opuesto de 7 es -7"
+                    }
+                ],
+                "created_at": datetime.utcnow()
+            },
+            # Theory
+            {
+                "module_id": first_module_id,
+                "content_type": "theory",
+                "title": "Teoría - Definición y Clasificación de Números Enteros",
+                "theory_content": """# Números Enteros - Definición y Clasificación
+
+## ¿Qué son los números enteros?
+
+Los números enteros son una extensión de los números naturales que incluye:
+- Los números naturales: 1, 2, 3, 4, 5, ...
+- El cero: 0
+- Los números negativos: -1, -2, -3, -4, -5, ...
+
+**Conjunto de números enteros**: Z = {..., -3, -2, -1, 0, 1, 2, 3, ...}
+
+## Clasificación de los números enteros
+
+### 1. Números enteros positivos
+Son los números naturales: 1, 2, 3, 4, 5, ...
+- También se pueden escribir como +1, +2, +3, ...
+- Se ubican a la derecha del cero en la recta numérica
+
+### 2. El cero (0)
+- Es neutro, no es positivo ni negativo
+- Separa los números positivos de los negativos
+- Es el centro de la recta numérica
+
+### 3. Números enteros negativos
+Son: -1, -2, -3, -4, -5, ...
+- Se ubican a la izquierda del cero en la recta numérica
+- Representan cantidades menores que cero
+
+## La recta numérica
+
+En la recta numérica, los números enteros se ordenan de menor a mayor:
+- Los números negativos están a la izquierda del cero
+- Los números positivos están a la derecha del cero
+- Mientras más a la derecha, mayor es el número
+- Mientras más a la izquierda, menor es el número
+
+## Valor absoluto
+
+El valor absoluto de un número entero es su distancia al cero, sin considerar el signo.
+- Se representa con barras verticales: |a|
+- Siempre es positivo o cero
+- |5| = 5, |-5| = 5, |0| = 0
+
+## Números opuestos
+
+Dos números son opuestos si tienen el mismo valor absoluto pero signos diferentes.
+- El opuesto de 7 es -7
+- El opuesto de -3 es 3
+- El opuesto de 0 es 0""",
+                "created_at": datetime.utcnow()
+            },
+            # Learning Exercises
+            {
+                "module_id": first_module_id,
+                "content_type": "learning_exercises",
+                "title": "Ejercicios de Aprendizaje - Números Enteros",
+                "exercises": [
+                    {
+                        "problem": "¿Cuál de los siguientes números NO es un número entero?",
+                        "options": [
+                            {"option_text": "-5", "is_correct": False},
+                            {"option_text": "0", "is_correct": False},
+                            {"option_text": "3.5", "is_correct": True},
+                            {"option_text": "7", "is_correct": False}
+                        ],
+                        "difficulty": "easy",
+                        "explanation": "3.5 no es un número entero porque tiene parte decimal. Los números enteros son: ..., -2, -1, 0, 1, 2, ..."
+                    },
+                    {
+                        "problem": "¿Cuál es el valor absoluto de -8?",
+                        "options": [
+                            {"option_text": "-8", "is_correct": False},
+                            {"option_text": "8", "is_correct": True},
+                            {"option_text": "0", "is_correct": False},
+                            {"option_text": "16", "is_correct": False}
+                        ],
+                        "difficulty": "easy",
+                        "explanation": "El valor absoluto de -8 es 8, porque representa la distancia de -8 al cero en la recta numérica."
+                    },
+                    {
+                        "problem": "¿Cuál es el opuesto de -12?",
+                        "options": [
+                            {"option_text": "-12", "is_correct": False},
+                            {"option_text": "12", "is_correct": True},
+                            {"option_text": "0", "is_correct": False},
+                            {"option_text": "24", "is_correct": False}
+                        ],
+                        "difficulty": "easy",
+                        "explanation": "El opuesto de -12 es 12, porque tienen el mismo valor absoluto pero signos contrarios."
+                    }
+                ],
+                "created_at": datetime.utcnow()
+            },
+            # Practice Exercises
+            {
+                "module_id": first_module_id,
+                "content_type": "practice_exercises",
+                "title": "Ejercicios de Práctica - Números Enteros",
+                "exercises": [
+                    {
+                        "problem": "Ordena de menor a mayor: -3, 5, -1, 0, 2",
+                        "options": [
+                            {"option_text": "-3, -1, 0, 2, 5", "is_correct": True},
+                            {"option_text": "5, 2, 0, -1, -3", "is_correct": False},
+                            {"option_text": "-1, -3, 0, 2, 5", "is_correct": False},
+                            {"option_text": "-3, -1, 2, 0, 5", "is_correct": False}
+                        ],
+                        "difficulty": "medium",
+                        "explanation": "En la recta numérica, de izquierda a derecha (menor a mayor): -3, -1, 0, 2, 5"
+                    },
+                    {
+                        "problem": "Si |x| = 7 y x es negativo, ¿cuál es el valor de x?",
+                        "options": [
+                            {"option_text": "7", "is_correct": False},
+                            {"option_text": "-7", "is_correct": True},
+                            {"option_text": "0", "is_correct": False},
+                            {"option_text": "14", "is_correct": False}
+                        ],
+                        "difficulty": "medium",
+                        "explanation": "Si |x| = 7 y x es negativo, entonces x = -7, porque |-7| = 7"
+                    },
+                    {
+                        "problem": "¿Entre qué números enteros consecutivos está ubicado el cero?",
+                        "options": [
+                            {"option_text": "Entre -1 y 1", "is_correct": True},
+                            {"option_text": "Entre 0 y 1", "is_correct": False},
+                            {"option_text": "Entre -2 y 2", "is_correct": False},
+                            {"option_text": "No está entre números consecutivos", "is_correct": False}
+                        ],
+                        "difficulty": "hard",
+                        "explanation": "El cero está entre -1 y 1, que son números enteros consecutivos."
+                    }
+                ],
+                "created_at": datetime.utcnow()
+            },
+            # Quiz
+            {
+                "module_id": first_module_id,
+                "content_type": "quiz",
+                "title": "Quiz - Números Enteros: Definición y Clasificación",
+                "quiz_questions": [
+                    {
+                        "question": "Los números enteros incluyen:",
+                        "options": [
+                            {"option_text": "Solo números positivos", "is_correct": False},
+                            {"option_text": "Solo números negativos", "is_correct": False},
+                            {"option_text": "Números positivos, negativos y el cero", "is_correct": True},
+                            {"option_text": "Solo números decimales", "is_correct": False}
+                        ],
+                        "explanation": "Los números enteros incluyen los números positivos (1,2,3...), negativos (-1,-2,-3...) y el cero."
+                    },
+                    {
+                        "question": "En la recta numérica, ¿dónde se ubican los números negativos?",
+                        "options": [
+                            {"option_text": "A la derecha del cero", "is_correct": False},
+                            {"option_text": "A la izquierda del cero", "is_correct": True},
+                            {"option_text": "En el mismo lugar que el cero", "is_correct": False},
+                            {"option_text": "No se pueden ubicar", "is_correct": False}
+                        ],
+                        "explanation": "Los números negativos se ubican a la izquierda del cero en la recta numérica."
+                    },
+                    {
+                        "question": "¿Cuál es el valor de |-15|?",
+                        "options": [
+                            {"option_text": "-15", "is_correct": False},
+                            {"option_text": "15", "is_correct": True},
+                            {"option_text": "0", "is_correct": False},
+                            {"option_text": "30", "is_correct": False}
+                        ],
+                        "explanation": "El valor absoluto de -15 es 15, porque representa la distancia de -15 al cero."
+                    },
+                    {
+                        "question": "Dos números son opuestos cuando:",
+                        "options": [
+                            {"option_text": "Tienen diferente valor absoluto", "is_correct": False},
+                            {"option_text": "Tienen el mismo valor absoluto y diferentes signos", "is_correct": True},
+                            {"option_text": "Son ambos positivos", "is_correct": False},
+                            {"option_text": "Son ambos negativos", "is_correct": False}
+                        ],
+                        "explanation": "Dos números son opuestos cuando tienen el mismo valor absoluto pero signos diferentes, como 5 y -5."
+                    },
+                    {
+                        "question": "¿Cuál número es mayor: -10 o -5?",
+                        "options": [
+                            {"option_text": "-10", "is_correct": False},
+                            {"option_text": "-5", "is_correct": True},
+                            {"option_text": "Son iguales", "is_correct": False},
+                            {"option_text": "No se pueden comparar", "is_correct": False}
+                        ],
+                        "explanation": "-5 es mayor que -10 porque está más cerca del cero y más a la derecha en la recta numérica."
+                    }
+                ],
+                "created_at": datetime.utcnow()
+            }
+        ]
+
+        # Insert content
+        content_result = await db.content.insert_many(content_data)
+
+        return {
+            "message": f"7th grade content initialized successfully!",
+            "topics_created": len(topics_result.inserted_ids),
+            "modules_created": len(modules_result.inserted_ids),
+            "content_created": len(content_result.inserted_ids)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error initializing 7th grade content: {str(e)}")
+
 # Test endpoint to check database connection
 @api_router.get("/test-db")
 async def test_db():
