@@ -26,22 +26,6 @@ app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 # Pydantic models for the educational content
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type="string")
-        return field_schema
-
 class QuizOption(BaseModel):
     option_text: str
     is_correct: bool
@@ -63,7 +47,9 @@ class Exercise(BaseModel):
     explanation: str
 
 class Content(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     module_id: str
     content_type: str  # "glossary", "theory", "learning_exercises", "practice_exercises", "quiz"
     title: str
@@ -73,13 +59,10 @@ class Content(BaseModel):
     quiz_questions: Optional[List[QuizQuestion]] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
 class Module(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     topic_id: str
     name: str
     description: str
@@ -87,13 +70,10 @@ class Module(BaseModel):
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
 class Topic(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     grade_id: str
     name: str
     description: str
@@ -102,35 +82,24 @@ class Topic(BaseModel):
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
 class Grade(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     grade_number: int
     grade_name: str
     description: str
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
-
 class User(BaseModel):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     name: str
     current_grade: int
     progress: Dict[str, Any] = {}
     created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
 
 # API Endpoints
 
