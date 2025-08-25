@@ -196,7 +196,7 @@ async def get_content_by_type(module_id: str, content_type: str):
 # User progress endpoints
 @api_router.post("/users", response_model=User)
 async def create_user(user: User):
-    user_dict = user.model_dump(exclude={"id"})
+    user_dict = user.dict(exclude={"id"})
     result = await db.users.insert_one(user_dict)
     user.id = str(result.inserted_id)
     return user
