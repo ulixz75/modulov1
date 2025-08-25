@@ -101,6 +101,15 @@ class User(BaseModel):
     progress: Dict[str, Any] = {}
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+# Helper function to convert ObjectId to string
+def str_object_id(doc):
+    if doc and "_id" in doc:
+        doc["_id"] = str(doc["_id"])
+    return doc
+
+def str_object_ids(docs):
+    return [str_object_id(doc) for doc in docs]
+
 # API Endpoints
 
 @api_router.get("/")
@@ -111,7 +120,7 @@ async def root():
 @api_router.get("/grades", response_model=List[Grade])
 async def get_grades():
     grades = await db.grades.find({"is_active": True}).sort("grade_number", 1).to_list(100)
-    return [Grade(**grade) for grade in grades]
+    return [Grade(**str_object_id(grade)) for grade in grades]
 
 @api_router.get("/grades/{grade_id}", response_model=Grade)
 async def get_grade(grade_id: str):
@@ -121,7 +130,7 @@ async def get_grade(grade_id: str):
     grade = await db.grades.find_one({"_id": ObjectId(grade_id)})
     if not grade:
         raise HTTPException(status_code=404, detail="Grade not found")
-    return Grade(**grade)
+    return Grade(**str_object_id(grade))
 
 # Topic endpoints
 @api_router.get("/grades/{grade_id}/topics", response_model=List[Topic])
@@ -130,7 +139,7 @@ async def get_topics_by_grade(grade_id: str):
         raise HTTPException(status_code=400, detail="Invalid grade ID")
     
     topics = await db.topics.find({"grade_id": grade_id, "is_active": True}).sort("order", 1).to_list(100)
-    return [Topic(**topic) for topic in topics]
+    return [Topic(**str_object_id(topic)) for topic in topics]
 
 @api_router.get("/topics/{topic_id}", response_model=Topic)
 async def get_topic(topic_id: str):
@@ -140,7 +149,7 @@ async def get_topic(topic_id: str):
     topic = await db.topics.find_one({"_id": ObjectId(topic_id)})
     if not topic:
         raise HTTPException(status_code=404, detail="Topic not found")
-    return Topic(**topic)
+    return Topic(**str_object_id(topic))
 
 # Module endpoints
 @api_router.get("/topics/{topic_id}/modules", response_model=List[Module])
@@ -149,7 +158,7 @@ async def get_modules_by_topic(topic_id: str):
         raise HTTPException(status_code=400, detail="Invalid topic ID")
     
     modules = await db.modules.find({"topic_id": topic_id, "is_active": True}).sort("order", 1).to_list(100)
-    return [Module(**module) for module in modules]
+    return [Module(**str_object_id(module)) for module in modules]
 
 @api_router.get("/modules/{module_id}", response_model=Module)
 async def get_module(module_id: str):
@@ -159,7 +168,7 @@ async def get_module(module_id: str):
     module = await db.modules.find_one({"_id": ObjectId(module_id)})
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
-    return Module(**module)
+    return Module(**str_object_id(module))
 
 # Content endpoints
 @api_router.get("/modules/{module_id}/content", response_model=List[Content])
@@ -168,7 +177,7 @@ async def get_content_by_module(module_id: str):
         raise HTTPException(status_code=400, detail="Invalid module ID")
     
     content = await db.content.find({"module_id": module_id}).to_list(100)
-    return [Content(**c) for c in content]
+    return [Content(**str_object_id(c)) for c in content]
 
 @api_router.get("/modules/{module_id}/content/{content_type}")
 async def get_content_by_type(module_id: str, content_type: str):
@@ -182,14 +191,14 @@ async def get_content_by_type(module_id: str, content_type: str):
     content = await db.content.find_one({"module_id": module_id, "content_type": content_type})
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
-    return Content(**content)
+    return Content(**str_object_id(content))
 
 # User progress endpoints
 @api_router.post("/users", response_model=User)
 async def create_user(user: User):
-    user_dict = user.dict(exclude={"id"})
+    user_dict = user.model_dump(exclude={"id"})
     result = await db.users.insert_one(user_dict)
-    user.id = result.inserted_id
+    user.id = str(result.inserted_id)
     return user
 
 @api_router.get("/users/{user_id}", response_model=User)
@@ -200,7 +209,7 @@ async def get_user(user_id: str):
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return User(**user)
+    return User(**str_object_id(user))
 
 # Initialize database with sample data
 @api_router.post("/initialize-data")
